@@ -6,6 +6,7 @@ OPCODES :: enum {
     MOVEHEAP, // move value to heap address                                             val -> [addr]
     MOVEREG, // move value to register                                                  [val] -> reg
     PUSH, // push value to stack                                                        val -> stack[sp++]
+    PUSHREG, // push a register to the stack                                            reg -> stack[sp++]
     PUSHFP, // push a fp to fpstack                                                     (retaddr, argcount) -> fpstack[fpsp++]
     POP, // pop a value off of the stack into a register                                stack[--sp] -> reg
     MOVEHEAPTOREG, // move a value from the heap to a register                          [addr] -> reg
@@ -22,6 +23,7 @@ OPCODES :: enum {
     BITWISE_AND, // btiwise and between 2 registers                                     reg1 & reg2 -> stack[sp++]
     BITWISE_XOR, // btiwise xor between 2 registers                                     reg1  reg2 -> stack[sp++]
     BITWISE_NOT, // btiwise not on a register                                           !reg1 -> stack[sp++]
+
     // all logical ops return 0 or 1
     LOGICAL_OR, // logical or between 2 registers                                       reg1 || reg2 -> stack[sp++]
     LOGICAL_AND, // logical and between 2 registers                                     reg1 && reg2 -> stack[sp++]
@@ -38,4 +40,5 @@ OPCODES :: enum {
     JMPEQ, // jump if top of stack is 1                                                 if stack[--sp] == 1: ip -> stack[sp]
     JMPNEQ, // jump if top of stack is not euqal to 1                                   if stack[--sp] != 1: ip -> stack[sp]
     JMP, // jump to address unconditional                                               ip -> stack[--sp]
+    DBG, // print register
 }
