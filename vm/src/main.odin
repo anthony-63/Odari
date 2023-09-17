@@ -30,4 +30,10 @@ main :: proc() {
     
     debug_print("Running Odari Virutal Machine with Debug Information")
     verbose_print("Running Odari Virtual Machine with Verbose Output")
+
+    
+
+    TEST_PROGRAM :: []u64{
+        
+    }
 }

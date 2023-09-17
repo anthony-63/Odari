@@ -23,6 +23,10 @@ pub func printhi() -> void {
     io.print("Hello World!")
 }
 
+pub func printstring(string str) -> void {
+    syscall(4, 2, &str[0], strlen(str))
+}
+
 printhi()
 
 pub func return23() -> i32 {
