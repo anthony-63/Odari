@@ -1,0 +1,2 @@
+i32 test = 0
+i32 test1 = test + 1
