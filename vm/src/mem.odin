@@ -27,24 +27,25 @@ Odari_MEM :: struct {
 
 odari_pushstack :: proc(value: u64, mem: ^Odari_MEM) -> Maybe(Error) {
     verbose_print("Pushing", value, "to stack")
-    mem.sp += 1
     resize_dynamic_array(&mem.stack, int(mem.sp + 1))
     mem.stack[mem.sp] = value
+    mem.sp += 1
     verbose_print("Stack:", mem.stack)
     return nil
 }
 
 odari_popstack :: proc(mem: ^Odari_MEM) -> (u64, Maybe(Error)) {
-    mem.sp -= 1
-    if mem.sp < 0 {
+    if int(mem.sp - 1) < 0 {
         return 0, Error{.STACK_UNDERFLOW, fmt.aprint("Attempted to pop from empty stack")}
     }
 
-    top := mem.stack[mem.sp + 1]
+    mem.sp -= 1
+
+    top := mem.stack[mem.sp]
 
     verbose_print("Popped", top, "from stack")
     verbose_print("SP:", mem.sp)
-    reserve_dynamic_array(&mem.stack, int(mem.sp + 1))
+    resize_dynamic_array(&mem.stack, int(mem.sp + 1))
     verbose_print("Stack:", mem.stack)
 
     return top, nil

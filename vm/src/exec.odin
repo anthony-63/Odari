@@ -19,6 +19,8 @@ OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
     mul,
     div,
     fdiv,
+    inc,
+    dec,
     bitwiseor,
     bitsizeand,
     bitwisexor,
@@ -28,10 +30,10 @@ OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
     logicalnot,
     eq,
     neq,
-    ge,
-    le,
-    geq,
-    leg,
+    gt,
+    lt,
+    gteq,
+    lteg,
     call,
     func,
     native,
@@ -42,70 +44,114 @@ OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
 }
 
 next :: proc(pu: ^Odari_PU) -> (u64, Maybe(Error)) {
-    verbose_print("Next: ", pu.memory.exec[pu.ip])
     pu.ip += 1
+    if pu.ip >= len(pu.memory.exec) {
+        return 0, Error{.FAILED_TO_ACCESS_EXEC, "Failed to get next exec opcode"}
+    }
+    
+    verbose_print("Next: ", pu.memory.exec[pu.ip])
     return pu.memory.exec[pu.ip], nil
 }
 
 @(private="file")
 moveheap :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    val := next(pu) or_return
-    addr := next(pu) or_return
-    odari_setheap(val, addr, &pu.memory)
+    odari_setheap(
+        next(pu) or_return,
+        next(pu) or_return,
+        &pu.memory,
+    )
+
     return nil
 }
 
 @(private="file")
 movereg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    val := next(pu) or_return
-    reg := next(pu) or_return
-    odari_setreg(val, reg, &pu.memory) or_return
+    odari_setreg(
+        next(pu) or_return,
+        next(pu) or_return, 
+        &pu.memory,
+    ) or_return
+
     return nil
 }
 
 @(private="file")
 push :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    val := next(pu) or_return
-    odari_pushstack(val, &pu.memory)
+    odari_pushstack(
+        next(pu) or_return, 
+        &pu.memory,
+    )
+
     return nil
 }
 
 @(private="file")
 pushreg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction pushreg not implemented"}
+    odari_pushstack(
+        odari_getreg(next(pu) or_return, &pu.memory) or_return, 
+        &pu.memory,
+    ) or_return
+
+    return nil
 }
 
 @(private="file")
 pushfp :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction pushfp not implemented"}
+    return nil
 }
 
 @(private="file")
 pop :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    regtoset := next(pu) or_return
-    val := odari_popstack(&pu.memory) or_return
-    odari_setreg(val, regtoset, &pu.memory) or_return
+    odari_setreg(
+        odari_popstack(&pu.memory) or_return, 
+        next(pu) or_return, &pu.memory,
+    ) or_return
+
     return nil
 }
 
 @(private="file")
 moveheaptoreg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction moveheaptoreg not implemented"}
+    odari_setreg(
+        odari_getheap(next(pu) or_return, &pu.memory) or_return,
+        next(pu) or_return, 
+        &pu.memory,
+    ) or_return
+
+    return nil
 }
 
 @(private="file")
 moveregtoheap :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction moveregtoheap not implemented"}
+    odari_setheap(
+        odari_getreg(next(pu) or_return, &pu.memory) or_return, 
+        next(pu) or_return, 
+        &pu.memory,
+    ) or_return
+
+    return nil
 }
 
 @(private="file")
 moveregtoreg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction moveregtoreg not implementedproc"}
+    odari_setreg(
+        odari_getreg(next(pu) or_return, &pu.memory) or_return,
+        next(pu) or_return,
+        &pu.memory,
+    ) or_return
+
+    return nil
 }
 
 @(private="file")
 moveheaptoheap :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction moveheaptoheap not implemented"}
+    odari_setheap(
+        odari_getheap(next(pu) or_return, &pu.memory) or_return,
+        next(pu) or_return,
+        &pu.memory,
+    ) or_return
+
+    return nil
 }
 
 @(private="file")
@@ -123,17 +169,26 @@ add :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 
 @(private="file")
 sub :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction sub not implemented"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(r1val - r2val, &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 mul :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction mul not implemented"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(r1val * r2val, &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 div :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction div not implemented"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(r1val / r2val, &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
@@ -142,68 +197,128 @@ fdiv :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 }
 
 @(private="file")
+inc :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    reg := next(pu) or_return
+    odari_setreg(
+        (odari_getreg(reg, &pu.memory) or_return) + 1,
+        reg,
+        &pu.memory,
+    ) or_return
+    return nil
+}
+
+@(private="file")
+dec :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    reg := next(pu) or_return
+    odari_setreg(
+        (odari_getreg(reg, &pu.memory) or_return) - 1,
+        reg,
+        &pu.memory,
+    ) or_return
+    return nil
+}
+
+@(private="file")
 bitwiseor :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction bitwiseor not implementedc"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(r1val | r2val, &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 bitsizeand :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction bitsizeand not implementedoc"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(r1val & r2val, &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 bitwisexor :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction bitwisexor not implementedoc"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(r1val ~ r2val, &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 bitwisenot :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction bitwisenot not implementedoc"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(r1val &~ r1val, &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 logicalor :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction logicalor not implementedc"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(bool(r1val) || bool(r2val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 logicaland :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction logicaland not implementedoc"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(bool(r1val) && bool(r2val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 logicalnot :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction logicalnot not implementedoc"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(!bool(r1val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 eq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction eq not implemented"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(bool(r1val) == bool(r2val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
 neq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction neq not implemented"}
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(bool(r1val) != bool(r2val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
-ge :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction ge not implemented"}
+gt :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(int(r1val) > int(r2val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
-le :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction le not implemented"}
+lt :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(int(r1val) < int(r2val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
-geq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction geq not implemented"}
+gteq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(int(r1val) >= int(r2val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
-leg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction leg not implemented"}
+lteg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    r2val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    r1val := odari_getreg(next(pu) or_return, &pu.memory) or_return
+    odari_pushstack(u64(int(r1val) <= int(r2val)), &pu.memory) or_return
+    return nil
 }
 
 @(private="file")
@@ -218,29 +333,53 @@ func :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 
 @(private="file")
 native :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    index := odari_popstack(&pu.memory) or_return
-    BASE_FUNCTIONS[index](pu) or_return
+    func_idx := odari_popstack(&pu.memory) or_return
+    verbose_print("Calling native function index:", func_idx)
+    BASE_FUNCTIONS[func_idx](pu) or_return
     return nil
 }
 
 @(private="file")
 jmpeq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction jmpeq not implemented"}
+    addr := next(pu) or_return
+    cond := bool(odari_popstack(&pu.memory) or_return)
+
+    verbose_print("JMPEQ:", cond, fmt.aprintf("%08x", addr))
+
+    if cond {
+        pu.ip = int(addr)
+        return Error{.DO_NOT_SKIP, ""}
+    } else {
+        return nil
+    }
+
 }
 
 @(private="file")
 jmpneq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction jmpneq not implemented"}
+    addr := next(pu) or_return
+    cond := bool(odari_popstack(&pu.memory) or_return)
+
+    verbose_print("JMPNEQ:", cond, fmt.aprintf("%08x", addr))
+
+    if !cond {
+        pu.ip = int(addr)
+        return Error{.DO_NOT_SKIP, ""}
+    } else {
+        return nil
+    }
+
 }
 
 @(private="file")
 jmp :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction jmp not implemented"}
+    addr := next(pu) or_return
+    pu.ip = int(addr)
+    return Error{.DO_NOT_SKIP, ""}
 }
 
 @(private="file")
 dbg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    v := odari_getreg(next(pu) or_return, &pu.memory) or_return
-    fmt.println("DEBUG PRINT:", v)
+    fmt.println("DEBUG PRINT:", odari_getreg(next(pu) or_return, &pu.memory) or_return)
     return nil
 }
