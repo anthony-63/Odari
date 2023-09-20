@@ -10,13 +10,13 @@ BASE_FUNCTIONS := [](proc(^Odari_PU) -> Maybe(Error)) {
 
 @(private="file")
 print :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    address := odari_popstack(&pu.memory) or_return
-    size := odari_getheap(address, &pu.memory) or_return
+    address := odari_popstack(&pu.memory_scopes[pu.scope_index]) or_return
+    size := odari_getheap(address, &pu.memory_scopes[pu.scope_index]) or_return
     verbose_print(fmt.aprintf("Printing out string from address %08x with length of %d", address, size))
     old := enabled_flags
     enabled_flags = {}
     for i in 1..=size {
-        fmt.printf("%c", odari_getheap(address + u64(i), &pu.memory) or_return)
+        fmt.printf("%c", odari_getheap(address + u64(i), &pu.memory_scopes[pu.scope_index]) or_return)
     }
     enabled_flags = old
     return nil
@@ -24,8 +24,8 @@ print :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 
 @(private="file")
 print_register :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    reg := odari_popstack(&pu.memory) or_return
+    reg := odari_popstack(&pu.memory_scopes[pu.scope_index]) or_return
     verbose_print("Printing register", reg)
-    fmt.print(odari_getreg(reg, &pu.memory) or_return)
+    fmt.print(odari_getreg(reg, &pu.memory_scopes[pu.scope_index]) or_return)
     return nil
 }

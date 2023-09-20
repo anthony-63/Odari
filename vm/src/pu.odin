@@ -4,8 +4,11 @@ import "core:fmt"
 import "core:os"
 
 Odari_PU :: struct {
-    memory: Odari_MEM,
+    memory_scopes: [dynamic]Odari_MEM,
+    p_stack: [dynamic]u64,
+    psp: u64,
     calling: bool,
+    scope_index: int,
     ip: int,
     printing: bool,
 }
@@ -13,26 +16,51 @@ Odari_PU :: struct {
 @(private="file")
 halt_msg :: proc(pu: ^Odari_PU) {
     debug_print("Halting!")
-    debug_print("Final heap(", pu.memory.heap_size + 1, "): ", pu.memory.heap, separ="")
-    debug_print("Final stack(", pu.memory.sp, "): ", pu.memory.stack, separ="")
-    debug_print("Final registers(", pu.memory.registers_size + 1, "): ", pu.memory.registers, separ="")
-    debug_print("Final exec memory(", len(pu.memory.exec) - pu.ip, "): ", pu.memory.exec[pu.ip-1:], separ="")
+    debug_print("Final scopes: ",pu.memory_scopes , separ="")
+    debug_print("Preserved Stack: ", pu.p_stack)
+}
+
+odari_push_pstack :: proc(val: u64, pu: ^Odari_PU) -> Maybe(Error) {
+    verbose_print("Pushing", val, "to stack")
+    resize_dynamic_array(&pu.p_stack, int(pu.psp + 1))
+    pu.p_stack[pu.psp] = val
+    pu.psp += 1
+    verbose_print("Preserved Stack:", pu.p_stack)
+    return nil
+}
+
+odari_pop_pstack :: proc(pu: ^Odari_PU) -> (u64, Maybe(Error)) {
+    if int(pu.psp - 1) < 0 {
+        return 0, Error{.STACK_UNDERFLOW, fmt.aprint("Attempted to pop from empty preserve stack")}
+    }
+
+    pu.psp -= 1
+
+    top := pu.p_stack[pu.psp]
+
+    verbose_print("Popped", top, "from preserved stack")
+    verbose_print("PSP:", pu.psp)
+    resize_dynamic_array(&pu.p_stack, int(pu.psp + 1))
+    verbose_print("Preserved Stack:", pu.p_stack)
+
+    return top, nil
 }
 
 odari_execute_bytecode :: proc(pu: ^Odari_PU, bytecode: []u64) -> Maybe(Error) {
-    debug_print("Loading bytecode")
+    debug_print("Loading bytecode into exec memory")
+    append(&pu.memory_scopes, Odari_MEM{})
     for b in bytecode {
-        append(&pu.memory.exec, b)
+        append(&pu.memory_scopes[0].exec, b)
     }
 
     defer halt_msg(pu)
 
-    verbose_print("Exec memory:", pu.memory.exec)
+    verbose_print("Exec memory:", pu.memory_scopes[0].exec)
 
     debug_print("Starting execution...")
-    for pu.ip < len(pu.memory.exec) {
+    for pu.ip < len(pu.memory_scopes[0].exec) {
         verbose_print("Executing: ", bytecode[pu.ip])
-        err := OPCODE_CALL_TABLE[pu.memory.exec[pu.ip]](pu)
+        err := OPCODE_CALL_TABLE[pu.memory_scopes[0].exec[pu.ip]](pu)
         if err == nil {
             pu.ip += 1
         } else {
@@ -40,7 +68,7 @@ odari_execute_bytecode :: proc(pu: ^Odari_PU, bytecode: []u64) -> Maybe(Error) {
             else do return err
         }
 
-        verbose_print("Opcodes left(IP:", pu.ip, "): ", pu.memory.exec[pu.ip:])
+        verbose_print("Opcodes left(IP:", pu.ip, "): ", pu.memory_scopes[0].exec[pu.ip:], separ="")
     }
 
     
