@@ -16,6 +16,7 @@ TEST_PROGRAM :: []u64{
 }
 
 LOOP_TEST :: []u64{
+    u64(OPCODES.NOOP),
     u64(OPCODES.MOVEREG), 0x01, 0,
     u64(OPCODES.MOVEREG), 0x0A, 1,
     u64(OPCODES.PUSH), 1,
@@ -28,7 +29,7 @@ LOOP_TEST :: []u64{
     u64(OPCODES.NATIVE),
     u64(OPCODES.DEC), 1,
     u64(OPCODES.GT), 1, 0,
-    u64(OPCODES.JMPNEQ), 0x06,
+    u64(OPCODES.JMPNEQ), 0x07,
 }
 
 FUNC_TEST :: []u64 {

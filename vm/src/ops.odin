@@ -43,7 +43,7 @@ OPCODES :: enum {
     JMPEQ, // jump if top of stack is 1                                                 if stack[--sp] == 1: ip -> stack[sp]
     JMPNEQ, // jump if top of stack is not euqal to 1                                   if stack[--sp] != 1: ip -> stack[sp]
     JMP, // jump to address unconditional                                               ip -> stack[--sp]
-    DBG, // print register
+    NOOP, // print register
 }
 
 // FUNCTION CALLING CONVENTION

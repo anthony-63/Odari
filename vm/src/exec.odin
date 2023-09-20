@@ -42,7 +42,7 @@ OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
     jmpeq,
     jmpneq,
     jmp,
-    dbg,
+    noop,
 }
 
 next :: proc(pu: ^Odari_PU) -> (u64, Maybe(Error)) {
@@ -406,7 +406,6 @@ jmp :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 }
 
 @(private="file")
-dbg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    fmt.println("DEBUG PRINT:", odari_getreg(next(pu) or_return, &pu.memory_scopes[pu.scope_index]) or_return)
+noop :: proc(pu: ^Odari_PU) -> Maybe(Error) {
     return nil
 }

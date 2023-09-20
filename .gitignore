@@ -1,3 +1,6 @@
 *.exe
 *.json
 test/compiled
+*.odaric
+./odari*
+./odaric*
