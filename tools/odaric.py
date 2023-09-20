@@ -38,6 +38,8 @@ OPS = [
     "JMPEQ",
     "JMPNEQ",
     "JMP",
+    "JMPSTACK",
+    "PUSHIP",
     "DBG",
 ]
 

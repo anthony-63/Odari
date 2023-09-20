@@ -42,7 +42,9 @@ OPCODES :: enum {
     NATIVE, // call native function                                                     ip -> natives[stack[--sp]](stack[--sp], ...)
     JMPEQ, // jump if top of stack is 1                                                 if stack[--sp] == 1: ip -> stack[sp]
     JMPNEQ, // jump if top of stack is not euqal to 1                                   if stack[--sp] != 1: ip -> stack[sp]
-    JMP, // jump to address unconditional                                               ip -> stack[--sp]
+    JMP, // jump to address unconditional                                               ip -> addr
+    JMPSTACK, // jump to address on top of stack                                        ip -> stack[--sp]
+    PUSHIP, // push ip to stack                                                         stack[sp++] -> ip
     NOOP, // print register
 }
 

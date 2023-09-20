@@ -42,6 +42,8 @@ OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
     jmpeq,
     jmpneq,
     jmp,
+    jmpstack,
+    puship,
     noop,
 }
 
@@ -402,6 +404,19 @@ jmpneq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 jmp :: proc(pu: ^Odari_PU) -> Maybe(Error) {
     addr := next(pu) or_return
     pu.ip = int(addr)
+    return Error{.DO_NOT_SKIP, ""}
+}
+
+@(private="file")
+jmpstack :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    addr := odari_popstack(&pu.memory_scopes[pu.scope_index]) or_return
+    pu.ip = int(addr)
+    return Error{.DO_NOT_SKIP, ""}
+}
+
+@(private="file")
+puship :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    odari_pushstack(u64(pu.ip), &pu.memory_scopes[pu.scope_index])
     return Error{.DO_NOT_SKIP, ""}
 }
 
