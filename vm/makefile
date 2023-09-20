@@ -1,7 +1,12 @@
 ODIN = odin
-OUT = ../odari.exe
+BIN = ../odari
+OUT = $(BIN)
 SRC = src/
 SRC_FILES = $(SRC)/*.odin
+
+ifeq ($(OS),Windows_NT)
+	OUT = $(BIN).exe
+endif
 
 all: $(OUT)
 
