@@ -46,7 +46,7 @@ OPCODES :: enum {
     JMP, // jump to address unconditional                                               ip -> addr
     JMPSTACK, // jump to address on top of stack                                        ip -> stack[--sp]
     PUSHIP, // push ip to stack                                                         stack[sp++] -> ip
-    NOOP, // print register
+    NOOP, // no operation
 }
 
 // FUNCTION CALLING CONVENTION
