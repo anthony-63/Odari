@@ -428,7 +428,7 @@ jmpstack :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 @(private="file")
 puship :: proc(pu: ^Odari_PU) -> Maybe(Error) {
     odari_pushstack(u64(pu.ip), &pu.memory_scopes[pu.scope_index])
-    return Error{.DO_NOT_SKIP, ""}
+    return nil
 }
 
 @(private="file")

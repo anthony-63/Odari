@@ -45,7 +45,7 @@ main :: proc() {
     PROGRAM_x64 := NO_PROGRAM
 
     if .SUPER_SECRET_FLAG in enabled_flags {
-        PROGRAM_x64 = LOOP_TEST
+        PROGRAM_x64 = TEST_PROGRAM
     } else {
         debug_print("Loading bytecode from '", file_name, "'", separ="")
         if !os.exists(file_name) {
