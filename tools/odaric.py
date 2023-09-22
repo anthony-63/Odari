@@ -11,6 +11,7 @@ OPS = [
     "MOVEREGTOHEAP",
     "MOVEREGTOREG",
     "MOVEHEAPTOHEAP",
+    "MOVEREGTOREF",
     "RET",
     "ADD",
     "SUB",
@@ -40,7 +41,7 @@ OPS = [
     "JMP",
     "JMPSTACK",
     "PUSHIP",
-    "DBG",
+    "NOOP",
 ]
 
 import sys

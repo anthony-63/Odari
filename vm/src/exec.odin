@@ -15,6 +15,7 @@ OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
     moveregtoheap,
     moveregtoreg,
     moveheaptoheap,
+    moveregtoref,
     ret,
     add,
     sub,
@@ -180,6 +181,16 @@ moveheaptoheap :: proc(pu: ^Odari_PU) -> Maybe(Error) {
         &pu.memory_scopes[pu.scope_index],
     ) or_return
 
+    return nil
+}
+
+@(private="file")
+moveregtoref :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    odari_setheap(
+        odari_getreg(next(pu) or_return, &pu.memory_scopes[pu.scope_index]) or_return,
+        odari_popstack(&pu.memory_scopes[pu.scope_index]) or_return,
+        &pu.memory_scopes[pu.scope_index],
+    ) or_return
     return nil
 }
 

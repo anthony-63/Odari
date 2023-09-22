@@ -15,6 +15,7 @@ OPCODES :: enum {
     MOVEREGTOHEAP, // move a value from a register to a heap address                    reg -> [addr]
     MOVEREGTOREG, // move a value from register to register                             reg1 -> reg2
     MOVEHEAPTOHEAP, // move a value from a heap address to another heap address         [addr1] -> [addr2]
+    MOVEREGTOREF, // move a register to the heap address at the top of the stack        reg -> [stack[--sp]]
     RET, // return from function to the top function object on the fpstack              fpstack[--fpsp].ret_addr -> ip
     ADD, // add 2 registers                                                             reg1 + reg2 -> stack[sp++]
     SUB, // subtract 2 registers                                                        reg1 - reg2 -> stack[sp++]
