@@ -388,7 +388,8 @@ call :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 func :: proc(pu: ^Odari_PU) -> Maybe(Error) {
     if !pu.calling {
         verbose_print("Skipping function: ", pu.ip)
-        pu.ip += int(pu.xrefed[pu.ip])
+        dist := pu.xrefed[pu.ip] - u64(pu.ip)
+        pu.ip += int(dist)
     }
     pu.calling = false
     
