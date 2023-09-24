@@ -1,10 +1,9 @@
 package main
 
 import "core:fmt"
-import "vendor:lua"
+
 Odari_FuncStackItem :: struct {
     ret_addr: u64,
-    arg_size: u64,
 }
 
 Odari_PtrItem :: struct {
@@ -18,9 +17,7 @@ Odari_MEM :: struct {
     registers: [dynamic]u64,
     stack: [dynamic]u64,
     ptrs: [dynamic]Odari_PtrItem,
-    func_stack: [dynamic]Odari_FuncStackItem,
     sp: u64,
-    fpsp: u64,
     heap_size: u64,
     registers_size: u64,
 }
@@ -47,6 +44,8 @@ odari_popstack :: proc(mem: ^Odari_MEM) -> (u64, Maybe(Error)) {
     verbose_print("SP:", mem.sp)
     resize_dynamic_array(&mem.stack, int(mem.sp + 1))
     verbose_print("Stack:", mem.stack)
+
+    if mem.sp == 0 do mem.stack = {}
 
     return top, nil
 }

@@ -39,7 +39,8 @@ OPCODES :: enum {
     GTEQ, // check if a register is greater than or euqal to another                    reg1 >= reg2 -> stack[sp++]
     LTEQ, // check if a register is less than or equal to another                       reg1 <= reg2 -> stack[sp++]
     CALL, // call a function and push the function object to the stack                  (ip, addr) -> fpstack[fpsp++]; ip -> addr; calling = true
-    FUNC, // start of a function                                                        if calling == true: calling = false; continue else ip -> fpstack[--fpsp].ret_addr
+    FUNC, // start of a function                                                        if calling == true: calling = false; continue else ip -> end of function(preproccessed)
+    END, // end of a function                                                       used by the preprocessor to find the end of a function
     NATIVE, // call native function                                                     ip -> natives[stack[--sp]](stack[--sp], ...)
     JMPEQ, // jump if top of stack is 1                                                 if stack[--sp] == 1: ip -> stack[sp]
     JMPNEQ, // jump if top of stack is not euqal to 1                                   if stack[--sp] != 1: ip -> stack[sp]

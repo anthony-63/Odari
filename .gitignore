@@ -4,3 +4,5 @@ test/compiled
 *.odaric
 ./odari*
 ./odaric*
+*.txt
+*.odariasm

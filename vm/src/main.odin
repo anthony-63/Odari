@@ -25,6 +25,34 @@ verbose_print :: proc(args: ..any, separ := " ") {
     if .VERBOSE in enabled_flags do fmt.println(..args, sep=separ)
 }
 
+OPCODE :: struct {
+    num: u64,
+    xref: u64,
+}
+
+preprocess :: proc(program: []u64) -> []OPCODE {
+    opcodes := make([]OPCODE, len(program))
+    next := false
+    curr: u64 = 0
+    for op, i in program {
+        opcodes[i].num = op
+    }
+    for op, i in program {
+        if op == u64(OPCODES.FUNC) {
+            next = true
+            curr = u64(i)
+        }
+        if op == u64(OPCODES.END) && next {
+            next = false
+            opcodes[curr].xref = u64(i)
+            debug_print("XREFED: ", curr, " -> ", i, separ="")
+        } else if op == u64(OPCODES.END) && !next {
+            fmt.println("End encountered without func at address:", i)
+        }
+    }
+    return opcodes
+}
+
 main :: proc() {
     for i in os.args {
         if i[0] == '-' {
@@ -72,15 +100,17 @@ main :: proc() {
         for n in 0..<len(final_program) {
             PROGRAM_x64[n] = final_program[n]
         }
-
     }
+    
+    FINISHED_PROGRAM_x64 := preprocess(PROGRAM_x64)
     
     debug_print("Running Odari Virutal Machine with Debug Information")
     verbose_print("Running Odari Virtual Machine with Verbose Output")
 
     pu: Odari_PU
 
-    if err := odari_execute_bytecode(&pu, PROGRAM_x64); err != nil {
+    if err := odari_execute_bytecode(&pu, FINISHED_PROGRAM_x64); err != nil {
         fmt.println("ERROR:", err.?.message)
     }
 }
+

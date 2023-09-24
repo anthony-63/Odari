@@ -1,6 +1,7 @@
 package main
 
 import "core:fmt"
+import "core:mem"
 
 OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
     moveheap,
@@ -39,6 +40,7 @@ OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
     lteg,
     call,
     func,
+    end,
     native,
     jmpeq,
     jmpneq,
@@ -50,12 +52,12 @@ OPCODE_CALL_TABLE := [](proc(^Odari_PU) -> Maybe(Error)){
 
 next :: proc(pu: ^Odari_PU) -> (u64, Maybe(Error)) {
     pu.ip += 1
-    if pu.ip >= len(pu.memory_scopes[pu.scope_index].exec) {
+    if pu.ip >= len(pu.memory_scopes[0].exec) {
         return 0, Error{.FAILED_TO_ACCESS_EXEC, "Failed to get next exec opcode"}
     }
     
-    verbose_print("Next: ", pu.memory_scopes[pu.scope_index].exec[pu.ip])
-    return pu.memory_scopes[pu.scope_index].exec[pu.ip], nil
+    verbose_print("Next: ", pu.memory_scopes[0].exec[pu.ip])
+    return pu.memory_scopes[0].exec[pu.ip], nil
 }
 
 @(private="file")
@@ -196,7 +198,12 @@ moveregtoref :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 
 @(private="file")
 ret :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction ret not implemented"}
+    mem.set(&pu.memory_scopes[pu.scope_index], 0, size_of(Odari_MEM))
+    pu.scope_index -= 1
+    pu.fpsp -= 1
+    pu.ip = int(pu.func_stack[pu.fpsp].ret_addr)
+    resize_dynamic_array(&pu.func_stack, int(pu.fpsp))
+    return nil
 }
 
 @(private="file")
@@ -363,12 +370,29 @@ lteg :: proc(pu: ^Odari_PU) -> Maybe(Error) {
 
 @(private="file")
 call :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction call not implemented"}
+    pu.calling = true
+    pu.scope_index += 1
+    jump := next(pu) or_return
+    verbose_print("Calling function at index: ", pu.ip)
+    call_stack_entry: Odari_FuncStackItem
+    call_stack_entry.ret_addr = u64(pu.ip)
+    pu.ip = int(jump)
+    append(&pu.func_stack, call_stack_entry)
+    pu.fpsp += 1
+    append(&pu.memory_scopes, Odari_MEM{})
+    verbose_print("Call stack:", pu.func_stack)
+    return nil
 }
 
 @(private="file")
 func :: proc(pu: ^Odari_PU) -> Maybe(Error) {
-    return Error{.NOT_IMPLEMENTED, "Instruction func not implemented"}
+    if !pu.calling {
+        verbose_print("Skipping function: ", pu.ip)
+        pu.ip += int(pu.xrefed[pu.ip])
+    }
+    pu.calling = false
+    
+    return nil
 }
 
 @(private="file")
@@ -392,7 +416,6 @@ jmpeq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
     } else {
         return nil
     }
-
 }
 
 @(private="file")
@@ -408,7 +431,6 @@ jmpneq :: proc(pu: ^Odari_PU) -> Maybe(Error) {
     } else {
         return nil
     }
-
 }
 
 @(private="file")
@@ -416,6 +438,11 @@ jmp :: proc(pu: ^Odari_PU) -> Maybe(Error) {
     addr := next(pu) or_return
     pu.ip = int(addr)
     return Error{.DO_NOT_SKIP, ""}
+}
+
+@(private="file")
+end :: proc(pu: ^Odari_PU) -> Maybe(Error) {
+    return nil
 }
 
 @(private="file")

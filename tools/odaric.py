@@ -35,6 +35,7 @@ OPS = [
     "LTEQ",
     "CALL",
     "FUNC",
+    "END",
     "NATIVE",
     "JMPEQ",
     "JMPNEQ",
