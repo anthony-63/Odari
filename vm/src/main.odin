@@ -8,7 +8,6 @@ import "core:mem"
 FLAGS :: enum {
     DEBUG,
     VERBOSE,
-    SUPER_SECRET_FLAG,
 }
 
 FLAG_SET :: bit_set[FLAGS]
@@ -30,6 +29,42 @@ OPCODE :: struct {
     xref: u64,
 }
 
+NO_PROGRAM :: []u64{
+    u64(OPCODES.MOVEHEAP), 29, 0x00,
+    u64(OPCODES.MOVEHEAP), 78, 1,
+    u64(OPCODES.MOVEHEAP), 79, 2,
+    u64(OPCODES.MOVEHEAP), 32, 3,
+    u64(OPCODES.MOVEHEAP), 80, 4,
+    u64(OPCODES.MOVEHEAP), 82, 5,
+    u64(OPCODES.MOVEHEAP), 79, 6,
+    u64(OPCODES.MOVEHEAP), 71, 7,
+    u64(OPCODES.MOVEHEAP), 82, 8,
+    u64(OPCODES.MOVEHEAP), 65, 9,
+    u64(OPCODES.MOVEHEAP), 77, 10,
+    u64(OPCODES.MOVEHEAP), 40, 11,
+    u64(OPCODES.MOVEHEAP), 83, 12,
+    u64(OPCODES.MOVEHEAP), 72, 13,
+    u64(OPCODES.MOVEHEAP), 79, 14,
+    u64(OPCODES.MOVEHEAP), 85, 15,
+    u64(OPCODES.MOVEHEAP), 76, 16,
+    u64(OPCODES.MOVEHEAP), 68, 17,
+    u64(OPCODES.MOVEHEAP), 32, 18,
+    u64(OPCODES.MOVEHEAP), 78, 19,
+    u64(OPCODES.MOVEHEAP), 69, 20,
+    u64(OPCODES.MOVEHEAP), 86, 21,
+    u64(OPCODES.MOVEHEAP), 69, 22,
+    u64(OPCODES.MOVEHEAP), 82, 23,
+    u64(OPCODES.MOVEHEAP), 32, 24,
+    u64(OPCODES.MOVEHEAP), 83, 25,
+    u64(OPCODES.MOVEHEAP), 69, 26,
+    u64(OPCODES.MOVEHEAP), 69, 27,
+    u64(OPCODES.MOVEHEAP), 41, 28,
+    u64(OPCODES.MOVEHEAP), 10, 29,
+    u64(OPCODES.PUSH),     0x00,
+    u64(OPCODES.PUSH),     0x00,
+    u64(OPCODES.NATIVE),
+}
+
 preprocess :: proc(program: []u64) -> []OPCODE {
     opcodes := make([]OPCODE, len(program))
     next := false
@@ -47,7 +82,7 @@ preprocess :: proc(program: []u64) -> []OPCODE {
             opcodes[curr].xref = u64(i)
             debug_print("XREFED: ", curr, " -> ", i, separ="")
         } else if op == u64(OPCODES.END) && !next {
-            fmt.println("End encountered without func at address:", i)
+            fmt.println("End encountered without func at address: ", i)
         }
     }
     return opcodes
@@ -59,7 +94,6 @@ main :: proc() {
             switch i {
                 case "-debug": enabled_flags += {.DEBUG}; continue
                 case "-verbose": enabled_flags += {.VERBOSE}; continue
-                case "-super-secret-flag": enabled_flags += {.SUPER_SECRET_FLAG}; continue
             }
         }
         if strings.contains(i, ".odaric") do file_name = i
@@ -72,34 +106,30 @@ main :: proc() {
 
     PROGRAM_x64 := NO_PROGRAM
 
-    if .SUPER_SECRET_FLAG in enabled_flags {
-        PROGRAM_x64 = TEST_PROGRAM
-    } else {
-        debug_print("Loading bytecode from '", file_name, "'", separ="")
-        if !os.exists(file_name) {
-            fmt.println("File '", file_name, "' does not exist!", sep="")
-            os.exit(-1)
-        }
-        data, s := os.read_entire_file_from_filename(file_name)
-        if !s {
-            fmt.println("Failed to read from file '", file_name, "'", sep="")
-            os.exit(-1)
-        }
-        i := 0
-        final_program: [dynamic]u64 = {}
-        for _ in 0..<len(data) / 8 {
-            b1, b2, b3, b4, b5, b6, b7, b8_ := data[i], data[i + 1], data[i + 2], data[i + 3], data[i + 4], data[i + 5], data[i + 6], data[i + 7]
-            byte_list := make([]u8, 8)
-            byte_list = {b1, b2, b3, b4, b5, b6, b7, b8_}
-            final: u64 = 0
-            mem.copy(&final, raw_data(byte_list), 8)
-            append(&final_program, final)
-            i += 8
-        }
-        PROGRAM_x64 = make([]u64, len(final_program))
-        for n in 0..<len(final_program) {
-            PROGRAM_x64[n] = final_program[n]
-        }
+    debug_print("Loading bytecode from '", file_name, "'", separ="")
+    if !os.exists(file_name) {
+        fmt.println("File '", file_name, "' does not exist!", sep="")
+        os.exit(-1)
+    }
+    data, s := os.read_entire_file_from_filename(file_name)
+    if !s {
+        fmt.println("Failed to read from file '", file_name, "'", sep="")
+        os.exit(-1)
+    }
+    i := 0
+    final_program: [dynamic]u64 = {}
+    for _ in 0..<len(data) / 8 {
+        b1, b2, b3, b4, b5, b6, b7, b8_ := data[i], data[i + 1], data[i + 2], data[i + 3], data[i + 4], data[i + 5], data[i + 6], data[i + 7]
+        byte_list := make([]u8, 8)
+        byte_list = {b1, b2, b3, b4, b5, b6, b7, b8_}
+        final: u64 = 0
+        mem.copy(&final, raw_data(byte_list), 8)
+        append(&final_program, final)
+        i += 8
+    }
+    PROGRAM_x64 = make([]u64, len(final_program))
+    for n in 0..<len(final_program) {
+        PROGRAM_x64[n] = final_program[n]
     }
     
     FINISHED_PROGRAM_x64 := preprocess(PROGRAM_x64)
