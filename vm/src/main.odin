@@ -29,42 +29,6 @@ OPCODE :: struct {
     xref: u64,
 }
 
-NO_PROGRAM :: []u64{
-    u64(OPCODES.MOVEHEAP), 29, 0x00,
-    u64(OPCODES.MOVEHEAP), 78, 1,
-    u64(OPCODES.MOVEHEAP), 79, 2,
-    u64(OPCODES.MOVEHEAP), 32, 3,
-    u64(OPCODES.MOVEHEAP), 80, 4,
-    u64(OPCODES.MOVEHEAP), 82, 5,
-    u64(OPCODES.MOVEHEAP), 79, 6,
-    u64(OPCODES.MOVEHEAP), 71, 7,
-    u64(OPCODES.MOVEHEAP), 82, 8,
-    u64(OPCODES.MOVEHEAP), 65, 9,
-    u64(OPCODES.MOVEHEAP), 77, 10,
-    u64(OPCODES.MOVEHEAP), 40, 11,
-    u64(OPCODES.MOVEHEAP), 83, 12,
-    u64(OPCODES.MOVEHEAP), 72, 13,
-    u64(OPCODES.MOVEHEAP), 79, 14,
-    u64(OPCODES.MOVEHEAP), 85, 15,
-    u64(OPCODES.MOVEHEAP), 76, 16,
-    u64(OPCODES.MOVEHEAP), 68, 17,
-    u64(OPCODES.MOVEHEAP), 32, 18,
-    u64(OPCODES.MOVEHEAP), 78, 19,
-    u64(OPCODES.MOVEHEAP), 69, 20,
-    u64(OPCODES.MOVEHEAP), 86, 21,
-    u64(OPCODES.MOVEHEAP), 69, 22,
-    u64(OPCODES.MOVEHEAP), 82, 23,
-    u64(OPCODES.MOVEHEAP), 32, 24,
-    u64(OPCODES.MOVEHEAP), 83, 25,
-    u64(OPCODES.MOVEHEAP), 69, 26,
-    u64(OPCODES.MOVEHEAP), 69, 27,
-    u64(OPCODES.MOVEHEAP), 41, 28,
-    u64(OPCODES.MOVEHEAP), 10, 29,
-    u64(OPCODES.PUSH),     0x00,
-    u64(OPCODES.PUSH),     0x00,
-    u64(OPCODES.NATIVE),
-}
-
 preprocess :: proc(program: []u64) -> []OPCODE {
     opcodes := make([]OPCODE, len(program))
     next := false
@@ -104,7 +68,7 @@ main :: proc() {
         os.exit(-1)
     }
 
-    PROGRAM_x64 := NO_PROGRAM
+    PROGRAM_x64: []u64 = {}
 
     debug_print("Loading bytecode from '", file_name, "'", separ="")
     if !os.exists(file_name) {
