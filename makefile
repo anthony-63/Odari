@@ -12,8 +12,8 @@ $(VM_OUT):
 	make -C vm -B
 
 TEST_SOURCE = test/language/test.odari
-TEST_BYTECODE = test/compiled/hello_world.odaric
+TEST_BYTECODE = test/compiled/test.odaric
 
 run_tests: $(COMPILER_OUT) $(VM_OUT)
-	odaric $(TEST_SOURCE) out:$(TEST_BYTECODE)
-	odari $(TEST_BYTECODE) -debug
+	odaric $(TEST_SOURCE) $(TEST_BYTECODE) -verbose -debug
+	# odari $(TEST_BYTECODE) -debug

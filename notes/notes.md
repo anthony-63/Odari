@@ -8,10 +8,10 @@ include './notes' as notes // future idea
 include 'std/memory' as mem
 include 'std/io' as io
 
-i32 var_name = 0 // variable declaration
-i32 var_name = default // uses default type values
+int var_name = 0 // variable declaration
+int var_name = default // uses default type values
 ptr ptr_to_var = !var_name
-i32 deref_var = ptr_to_var!
+int deref_var = ptr_to_var!
 
 arrayptr allocated_array = mem.allocate(int, 100) // allocates array with size 100, stored in vm memory as [id, size, sizeof(type), values...]
 defer mem.free(allocated_array) // free memory of allocated array
@@ -29,7 +29,7 @@ pub func printstring(string str) -> void {
 
 printhi()
 
-pub func return23() -> i32 {
+pub func return23() -> int {
     ret 23
 }
 
